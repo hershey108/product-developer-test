@@ -23,7 +23,14 @@
         <p>Please enter your search query below. </p>
         <br/>
 
-        <div>Functionality goes here.</div>
+        <div>
+            <input type="text" name="query" id="query" placeholder="Enter your search location" size="60"><button id="search">Search</button>
+        </div>
+        <div id="map" style="display:none;"></div>
+        <div id="search-error" style="display: none;">
+            <h3>No results</h3>
+            <p>Sorry, there appear to be no results for your given query. Please try again with a different search term.</p>
+        </div>
 
     </div>
 </div>

@@ -50,3 +50,9 @@ a, a:hover {
 li {
     line-height: 24px;
 }
+
+#map {
+    width: 50%;
+    height: 400px;
+    background-color: grey;
+}
