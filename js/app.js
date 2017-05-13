@@ -35,14 +35,9 @@ function search(location) {
             limit: LIMIT
         },
         success: function(data) {
-            console.log(data);
-
             showResults(data);
         },
         error: function (data) {
-            console.log("Something went wrong");
-            console.log(data);
-
             handleFailure(data);
         }
     });
@@ -56,16 +51,70 @@ function showResults(data) {
     $("#search-error").hide();
     $("#map").show();
 
+    // When a map is hidden, it doesn't display properly on show. This fixes the display.
     google.maps.event.trigger(MAP, 'resize');
 
+    // Make sure we definitely have data, otherwise ask for a new search query
     if (!data.response.groups[0]) {
         handleFailure(data);
     }
 
+    // clear all the markers ready for new data
     clearMarkers();
 
     var items = data.response.groups[0].items;
 
+    // Put the new markers on the map
+    setMarkers(items);
+
+    // Add the label information to the listings
+    addLabels(items);
+
+    // Un-hide the labels once they've been set up.
+    $("#labels").show();
+}
+
+/**
+ * Manage a failed result from the API, likely can't find the queried location.
+ * @param data
+ */
+function handleFailure(data) {
+    // Hide the map and labels, show our error message.
+    $("#map").hide();
+    $("#labels").hide();
+    $("#search-error").show();
+}
+
+/**
+ * Setup function that will initially load the Google Map into the page.
+ */
+function initMap() {
+
+    // We don't actually care about the initial location, so we'll just use the one from the Maps tutorial.
+    var uluru = {lat: -25.363, lng: 131.044};
+
+    MAP = new google.maps.Map(document.getElementById('map'), {
+        zoom: 12,
+        center: uluru
+    });
+}
+
+/**
+ * Clear the markers from the map, ready for a new set of results
+ */
+function clearMarkers() {
+    for (var i = 0; i < MARKERS.length; i++) {
+        MARKERS[i].setMap(null);
+    }
+
+    MARKERS = [];
+}
+
+/**
+ * Add the markers to the Google Map and recenter the view
+ * @param items
+ */
+function setMarkers(items) {
     for (var i = 0; i < items.length; i++) {
         var marker = new google.maps.Marker({
             position: items[i].venue.location.labeledLatLngs[0],
@@ -84,37 +133,34 @@ function showResults(data) {
 }
 
 /**
- * Manage a failed result from the API, likely can't find the queried location.
- * @param data
+ * Adds labels to the side of the map
+ * @param items
  */
-function handleFailure(data) {
-    $("#map").hide();
-    $("#search-error").show();
+function addLabels(items) {
+    // Clear the existing label
+    $("#labels").html("");
+
+    for (var i = 0; i < items.length; i++) {
+        // Create our div for each venue
+        var divHTML = "<div class='label'><h3>" + (i+1) + " " + items[i].venue.name + " </h3><br><p>"
+            + items[0].venue.location.address + "<br>"
+            + items[0].venue.location.city + "<br>"
+            + items[0].venue.location.postalCode;
+
+        if (items[0].venue.contact && items[0].venue.contact.formattedPhone) {
+            divHTML += "<br>" + items[0].venue.contact.formattedPhone;
+        }
+
+        divHTML += "</p>";
+
+        // Drop the div into the labels area
+        $("#labels").append(divHTML);
+    }
 }
 
 /**
- * Setup function that will initially load the Google Map into the page.
+ * On ready function - set up the page to work
  */
-function initMap() {
-
-    // We don't actually care about the initial location, so we'll just use the one from the Maps tutorial.
-    var uluru = {lat: -25.363, lng: 131.044};
-
-    MAP = new google.maps.Map(document.getElementById('map'), {
-        zoom: 12,
-        center: uluru
-    });
-}
-
-function clearMarkers() {
-    for (var i = 0; i < MARKERS.length; i++) {
-        MARKERS[i].setMap(null);
-    }
-
-    MARKERS = [];
-}
-
-//On ready function - set up the page to work
 $(function(){
 
     // Hook up the search box and button
